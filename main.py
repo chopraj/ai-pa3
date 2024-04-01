@@ -263,22 +263,17 @@ def print_results(max_pref, min_pref, avg_pref, avg_time, count, results_file):
     sys.stdout = sys.__stdout__
 
 def user_requirements():
-    required_locations = set()
-    forbidden_locations = set()
+    """
+    Prompts the user to provide a set of required locations and a set of forbidden locations 
+    that must be part of the road trip. Users enter these as comma-separated lists.
+    """
+    print("Enter required locations as a comma-separated list (no spaces, e.g., 'NashvilleTN,MemphisTN'): ")
+    required_locations_input = input()
+    required_locations = set(required_locations_input.split(',')) if required_locations_input else set()
 
-    print("Please provide a set of required locations for the road trip.")
-    while True:
-        location = input("Enter a required location (or 'done' to finish): ")
-        if location.lower() == 'done':
-            break
-        required_locations.add(location)
-
-    print("\nPlease provide a set of forbidden locations for the road trip.")
-    while True:
-        location = input("Enter a forbidden location (or 'done' to finish): ")
-        if location.lower() == 'done':
-            break
-        forbidden_locations.add(location)
+    print("\nEnter forbidden locations as a comma-separated list (no spaces, e.g., 'LouisvilleKY,ChicagoIL'): ")
+    forbidden_locations_input = input()
+    forbidden_locations = set(forbidden_locations_input.split(',')) if forbidden_locations_input else set()
 
     return required_locations, forbidden_locations
 
