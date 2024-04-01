@@ -37,16 +37,16 @@ class DTree:
 
     def isLeaf(self, node):
         return node.feature is None
-    
 
 
-def RoundTripRoadTrip(startLoc, LocFile, EdgeFile, AttractionFile, themes_list, decision_tree, maxTime, x_mph, results_file, required_locatoins, forbidden_locations):
+
+def RoundTripRoadTrip(startLoc, LocFile, EdgeFile, AttractionFile, themes_list, decision_tree, maxTime, x_mph, results_file, required_locatoins, forbidden_locations, useDTree):
 
     if startLoc in forbidden_locations:
         print(f"The starting location {startLoc} is forbidden.")
         return None
 
-    g = init_graph(LocFile, EdgeFile, themes_list, forbidden_locations, decision_tree)
+    g = init_graph(LocFile, EdgeFile, themes_list, forbidden_locations, decision_tree, useDTree)
     curr_rt = Trip(startLoc, [], {}, {})
     q = [curr_rt]
     runtime = 0
@@ -115,7 +115,7 @@ def RoundTripRoadTrip(startLoc, LocFile, EdgeFile, AttractionFile, themes_list, 
 
 
 
-def init_graph(LocFile, EdgeFile, themes_list, forbidden_locations, decision_tree):
+def init_graph(LocFile, EdgeFile, themes_list, forbidden_locations, decision_tree, useDTree):
     graph = Graph({}, {}, {})
 
     # Read Locations
@@ -157,8 +157,14 @@ def init_graph(LocFile, EdgeFile, themes_list, forbidden_locations, decision_tre
     # Loc Prefs
     t = decision_tree()
     for loc in graph.locations.values():
-        loc = loc._replace(preference = t.find(loc.themes))
-        graph.locations[loc.label] = loc
+        if not useDTree: 
+            loc = loc._replace(preference = uniform(0,1))
+            graph.locations[loc.label] = loc
+        else: 
+            loc = loc._replace(preference = t.find(loc.themes))
+            graph.locations[loc.label] = loc
+
+
     
     # Edge Prefs
     for edge in graph.edges.values(): 
@@ -304,4 +310,4 @@ def get_themes():
 if __name__ == '__main__':
     starting_location, required_locations, forbidden_locations, max_time = user_requirements()
     themes_list = ['Environment','Parks','Hiking']
-    RoundTripRoadTrip(starting_location, 'Locations.csv', 'Edges.csv','Attractions.csv',themes_list, DTree , max_time, 80, "results.txt", required_locations, forbidden_locations)
+    RoundTripRoadTrip(starting_location, 'Locations.csv', 'Edges.csv','Attractions.csv',themes_list, DTree , max_time, 80, "results.txt", required_locations, forbidden_locations, True)
