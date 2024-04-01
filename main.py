@@ -155,10 +155,12 @@ def init_graph(LocFile, EdgeFile, themes_list, forbidden_locations, decision_tre
     t = decision_tree()
     for loc in graph.locations.values():
         loc = loc._replace(preference = t.find(loc.themes))
+        graph.locations[loc.label] = loc
     
     # Edge Prefs
     for edge in graph.edges.values(): 
         edge = edge._replace(preference = uniform(0,.1))
+        graph.edges[(edge.location1.label, edge.location2.label)] = edge
     
     return graph
     
@@ -233,6 +235,7 @@ def trip_totpref(trip, graph):
 
     return total_pref
 
+
 def get_direct_dist(graph, loc1, loc2): 
     return ((graph.locations[loc1].latitude - graph.locations[loc2].latitude) ** 2 + (
                     graph.locations[loc1].longitude - graph.locations[loc2].longitude) ** 2) ** 0.5
@@ -275,10 +278,14 @@ def user_requirements():
     forbidden_locations_input = input()
     forbidden_locations = set(forbidden_locations_input.split(',')) if forbidden_locations_input else set()
 
-    return required_locations, forbidden_locations
+    print("\nEnter the maximum time of your trip in hours (e.g., '50'): ")
+    max_time_input = input()
+    max_time = float(max_time_input) if max_time_input else 50
+
+    return required_locations, forbidden_locations, max_time
 
 
 if __name__ == '__main__':
-    required_locations, forbidden_locations = user_requirements()
+    required_locations, forbidden_locations, max_time = user_requirements()
     themes_list = ['Kids','Music','Parks']
-    RoundTripRoadTrip('NashvilleTN', 'Locations.csv', 'Edges.csv','Attractions.csv',themes_list, DTree ,50, 80, "results.txt", required_locations, forbidden_locations)
+    RoundTripRoadTrip('NashvilleTN', 'Locations.csv', 'Edges.csv','Attractions.csv',themes_list, DTree , max_time, 80, "results.txt", required_locations, forbidden_locations)
