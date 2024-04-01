@@ -37,7 +37,33 @@ class DTree:
 
     def isLeaf(self, node):
         return node.feature is None
+class DTree2:
+    def __init__(self): 
+        leaf_node1  = Node(None, None, None, value = 1)
+        leaf_node2 = Node(None,  None, None, value = 0.79)
+        leaf_node3 = Node(None, None, None, value=0.57)
+        leaf_node4 = Node(None,  None, None, value = 0.17)
+        leaf_node5 = Node(None,  None, None, value = 0.17)
+        leaf_node6 = Node(None, None, None, value = 0.17)
+        leaf_node7 = Node(None,  None, None, value = .01)
+        park_node = Node({"Hiking"}, leaf_node6,leaf_node7, None)
+        hiking_node = Node({"Parks"}, leaf_node5, park_node, None)
+        environment_node = Node({"Environment"}, leaf_node4,hiking_node, None)
+        environment_parks_node = Node({"Environment","Parks"}, leaf_node3, environment_node, None)
+        environment_hiking_node = Node({"Environment", "Hiking"}, leaf_node2,environment_parks_node, None)
+        self.root_node = Node({"Environment","Hiking","Parks"}, leaf_node1,environment_hiking_node, None)
 
+    def find(self, themes):
+        curr = self.root_node
+        while not self.isLeaf(curr):
+            if curr.feature == themes:
+                curr = curr.left
+            else:
+                curr = curr.right
+        return curr.value
+
+    def isLeaf(self, node):
+        return node.feature is None
 
 
 def RoundTripRoadTrip(startLoc, LocFile, EdgeFile, AttractionFile, themes_list, decision_tree, maxTime, x_mph, results_file, required_locatoins, forbidden_locations, useDTree):
@@ -310,4 +336,4 @@ def get_themes():
 if __name__ == '__main__':
     starting_location, required_locations, forbidden_locations, max_time = user_requirements()
     themes_list = ['Environment','Parks','Hiking']
-    RoundTripRoadTrip(starting_location, 'Locations.csv', 'Edges.csv','Attractions.csv',themes_list, DTree , max_time, 80, "results.txt", required_locations, forbidden_locations, True)
+    RoundTripRoadTrip(starting_location, 'Locations.csv', 'Edges.csv','Attractions.csv',themes_list, DTree2 , max_time, 80, "results.txt", required_locations, forbidden_locations, True)
