@@ -4,7 +4,7 @@ import csv
 import sys
 from collections import namedtuple
 
-Node = namedtuple('Node', ['feature', 'threshold', 'left', 'right', 'value'])
+Node = namedtuple('Node', ['feature', 'left', 'right', 'value'])
 Edge = namedtuple('Edge', ['label', 'location1', 'location2', 'distance', 'preference', 'themes'])
 Location = namedtuple('Location', ['label', 'latitude', 'longitude', 'themes', 'preference'])
 Graph = namedtuple('Graph', ['locations', 'edges', 'edge_labels'])
@@ -12,28 +12,31 @@ Trip = namedtuple('Trip', ['startLoc', 'edges', 'location_visits', 'edge_visits'
 
 class DTree:
     def __init__(self): 
-        leaf_node1  = Node(None, None, None, None, value = 0.99)
-        leaf_node2 = Node(None, None, None, None, value = 0.8)
-        leaf_node3 = Node(None, None, None, None, value=0.8)
-        leaf_node4 = Node(None, None, None, None, value = 0.25)
-        leaf_node5 = Node(None, None, None, None, value = 0.25)
-        leaf_node6 = Node(None, None, None, None, value = 0.25)
-        leaf_node7 = Node(None, None, None, None, value = 0)
-        music_node = Node({"Music"},None, leaf_node6,leaf_node7, None)
-        park_node = Node({"Parks"},None, leaf_node5, music_node, None)
-        kids_node = Node({"Kids"},None, leaf_node4,park_node, None)
-        kids_music_node = Node({"Kids","Music"},None, leaf_node3,kids_node, None)
-        kids_park_node = Node({"Kids","Parks"},None, leaf_node2,kids_music_node, None)
-        self.root_node = Node({"Kids","Parks","Music"},None, leaf_node1,kids_park_node, None)
+        leaf_node1  = Node(None, None, None, value = 0.99)
+        leaf_node2 = Node(None,  None, None, value = 0.65)
+        leaf_node3 = Node(None, None, None, value=0.65)
+        leaf_node4 = Node(None,  None, None, value = 0.2)
+        leaf_node5 = Node(None,  None, None, value = 0.2)
+        leaf_node6 = Node(None, None, None, value = 0.2)
+        leaf_node7 = Node(None,  None, None, value = 0)
+        park_node = Node({"Parks"}, leaf_node6,leaf_node7, None)
+        hiking_node = Node({"Hiking"}, leaf_node5, park_node, None)
+        environment_node = Node({"Environment"}, leaf_node4,hiking_node, None)
+        environment_parks_node = Node({"Environment","Parks"}, leaf_node3, environment_node, None)
+        environment_hiking_node = Node({"Environment", "Hiking"}, leaf_node2,environment_parks_node, None)
+        self.root_node = Node({"Environment","Hiking","Parks"}, leaf_node1,environment_hiking_node, None)
 
-    def find(self,themes):
-        curr  = self.root_node
-        while not isLeaf(curr):
-            if themes == curr.feature:
+    def find(self, themes):
+        curr = self.root_node
+        while not self.isLeaf(curr):
+            if curr.feature == themes:
                 curr = curr.left
-            else: 
+            else:
                 curr = curr.right
         return curr.value
+
+    def isLeaf(self, node):
+        return node.feature is None
     
 
 
@@ -270,6 +273,10 @@ def user_requirements():
     Prompts the user to provide a set of required locations and a set of forbidden locations 
     that must be part of the road trip. Users enter these as comma-separated lists.
     """
+    print("Enter starting location (e.g., 'NashvilleTN'): ")
+    starting_location_input = input()
+    starting_location = starting_location_input if starting_location_input else 'NashvilleTN'
+
     print("Enter required locations as a comma-separated list (no spaces, e.g., 'NashvilleTN,MemphisTN'): ")
     required_locations_input = input()
     required_locations = set(required_locations_input.split(',')) if required_locations_input else set()
@@ -282,10 +289,19 @@ def user_requirements():
     max_time_input = input()
     max_time = float(max_time_input) if max_time_input else 50
 
-    return required_locations, forbidden_locations, max_time
+    return starting_location, required_locations, forbidden_locations, max_time
 
+
+def get_themes():
+    with open('themes.csv', newline='') as file:
+        reader = csv.reader(file)
+        next(reader)
+        themes = []
+        for row in reader:
+            themes.append(row[0])
+    return themes
 
 if __name__ == '__main__':
-    required_locations, forbidden_locations, max_time = user_requirements()
-    themes_list = ['Kids','Music','Parks']
-    RoundTripRoadTrip('NashvilleTN', 'Locations.csv', 'Edges.csv','Attractions.csv',themes_list, DTree , max_time, 80, "results.txt", required_locations, forbidden_locations)
+    starting_location, required_locations, forbidden_locations, max_time = user_requirements()
+    themes_list = ['Environment','Parks','Hiking']
+    RoundTripRoadTrip(starting_location, 'Locations.csv', 'Edges.csv','Attractions.csv',themes_list, DTree , max_time, 80, "results.txt", required_locations, forbidden_locations)
