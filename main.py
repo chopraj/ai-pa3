@@ -4,12 +4,14 @@ import csv
 import sys
 from collections import namedtuple
 
+# Define classes and named tuples
 Node = namedtuple('Node', ['feature', 'left', 'right', 'value'])
 Edge = namedtuple('Edge', ['label', 'location1', 'location2', 'distance', 'preference', 'themes'])
 Location = namedtuple('Location', ['label', 'latitude', 'longitude', 'themes', 'preference'])
 Graph = namedtuple('Graph', ['locations', 'edges', 'edge_labels'])
 Trip = namedtuple('Trip', ['startLoc', 'edges', 'location_visits', 'edge_visits'])
 
+# Define decision tree classes
 class DTree:
     def __init__(self): 
         leaf_node1  = Node(None, None, None, value = 0.99)
@@ -72,7 +74,10 @@ def RoundTripRoadTrip(startLoc, LocFile, EdgeFile, AttractionFile, themes_list, 
         print(f"The starting location {startLoc} is forbidden.")
         return None
 
+    # Initialize the graph
     g = init_graph(LocFile, EdgeFile, themes_list, forbidden_locations, decision_tree, useDTree)
+
+    # Initialize the starting trip
     curr_rt = Trip(startLoc, [], {}, {})
     q = [curr_rt]
     runtime = 0
@@ -83,18 +88,23 @@ def RoundTripRoadTrip(startLoc, LocFile, EdgeFile, AttractionFile, themes_list, 
 
     with open(results_file, 'w') as f: 
         count = 0
+
+        # Main loop
         while q and again: 
             curr_rt = q.pop()
 
+            # If the current trip is empty, add all neighbors to the queue
             if not curr_rt.edges: 
                 neighbors = [edge for (loc1, loc2), edge in g.edges.items() if loc1 == curr_rt.startLoc]
                 neighbors.sort(key = lambda x: x.preference, reverse = True)
                 for edge in neighbors: 
+                    # If the edge is within the time limit, add it to the queue
                     if edge.distance < maxTime * x_mph: 
                         new_rt = Trip(curr_rt.startLoc, [], {}, {})
                         add_edge(new_rt, edge)
                         q.append(new_rt)
             else:
+                # If the current trip is not empty, add the trip to the answer list if it meets the requirements
                 if curr_rt.edges[-1].location2.label == startLoc and check_reqs(curr_rt, required_locatoins, forbidden_locations):
                     if trip_time(curr_rt, x_mph) < maxTime/2: 
                         continue 
@@ -103,6 +113,7 @@ def RoundTripRoadTrip(startLoc, LocFile, EdgeFile, AttractionFile, themes_list, 
                     f.close()
                     ans.append(curr_rt)
 
+                    # Timekeeping
                     tf = time()
                     runtime += tf - t0
                     t0 = time()
@@ -111,6 +122,7 @@ def RoundTripRoadTrip(startLoc, LocFile, EdgeFile, AttractionFile, themes_list, 
                     count += 1
 
                     if again: 
+                        # If the user wants to continue, sort the queue by preference and keep the top 80%
                         q = sorted(q, key = lambda x: trip_totpref(x, g), reverse = True)[:int(len(q)/1.2)]
                         continue 
                     else: 
@@ -140,7 +152,7 @@ def RoundTripRoadTrip(startLoc, LocFile, EdgeFile, AttractionFile, themes_list, 
 
 
 
-
+# Helper function
 def init_graph(LocFile, EdgeFile, themes_list, forbidden_locations, decision_tree, useDTree):
     graph = Graph({}, {}, {})
 
@@ -171,6 +183,7 @@ def init_graph(LocFile, EdgeFile, themes_list, forbidden_locations, decision_tre
             if random() < .5: 
                 loc.themes.add(t)
     
+    # Remove forbidden locations
     if forbidden_locations:
         for location in forbidden_locations:
             if location in graph.locations:
@@ -190,8 +203,6 @@ def init_graph(LocFile, EdgeFile, themes_list, forbidden_locations, decision_tre
             loc = loc._replace(preference = t.find(loc.themes))
             graph.locations[loc.label] = loc
 
-
-    
     # Edge Prefs
     for edge in graph.edges.values(): 
         edge = edge._replace(preference = uniform(0,.1))
